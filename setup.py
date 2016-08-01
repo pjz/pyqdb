@@ -7,19 +7,17 @@ except ImportError:
 
 from setuptools import setup, find_packages
 
-classifiers = [ 'Development Status :: 5 - Production/Stable'
-              , 'Environment :: Console'
+classifiers = [ 'Development Status :: 4 - Beta'
+              , 'Environment :: No Input/Output (Daemon)'
               , 'Intended Audience :: Developers'
-              , 'Intended Audience :: End Users/Desktop'
-              , 'Intended Audience :: System Administrators'
               , 'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)'
               , 'Natural Language :: English'
-              , 'Operating System :: MacOS :: MacOS X'
-              , 'Operating System :: Microsoft :: Windows'
-              , 'Operating System :: POSIX'
+              , 'Operating System :: OS Independent'
               , 'Programming Language :: Python :: 2.7'
+              , 'Programming Language :: Python :: 3.5'
               , 'Programming Language :: Python :: Implementation :: CPython'
-              , 'Topic :: Communications :: Email :: Email Clients (MUA)'
+              , 'Topic :: Database :: Front-Ends'
+              , 'Topic :: Software Development :: Libraries :: Python Modules'
               ]
 
 setup( author = 'Paul Jimenez'
@@ -29,7 +27,7 @@ setup( author = 'Paul Jimenez'
      , name = 'pyqdb'
      , url = 'http://github.com/pjz/pyqdb'
      , packages = find_packages()
-     , version = '0.1'
+     , version = '0.2'
      , install_requires = [ 'requests' ]
      , extras_require = { 'tests': [ 'pytest', 'pytest-timeout', 'pytest-cov' ] },
       )
