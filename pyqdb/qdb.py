@@ -16,6 +16,13 @@ class Server(object):
         self.password = password
         self._session = requests.Session()
 
+    def __repr__(self):
+        return '<pyqdb.Server(' + self.baseurl + ', ' + self.user + ', <password>>'
+
+    def reconnect(self):
+        if self._session is not None: self._session.close()
+        self._session = requests.Session()
+
     def _request(self, action, *path, **kwargs):
         """
         All requests go through here so they use common auth
@@ -23,12 +30,15 @@ class Server(object):
         url = posixpath.join(self.baseurl, *path)
         if not 'auth' in kwargs:
             kwargs['auth'] = (self.user, self.password)
-        return self._session.request(action, url, **kwargs)
+        result = self._session.request(action, url, **kwargs)
+        result.raise_for_status() # raise if not 200
+        return result
 
     # convenience functions
     def _get(self, *path, **kwargs): return self._request('GET', *path, **kwargs)
-    def _getj(self, *path, **kwargs): return self._get(*path, **kwargs).json()
     def _post(self, *path, **kwargs): return self._request('POST', *path, **kwargs)
+    def _del(self, *path, **kwargs): return self._request('DELETE', *path, **kwargs)
+    def _getj(self, *path, **kwargs): return self._get(*path, **kwargs).json()
     def _postj(self, *path, **kwargs): return self._post(*path, **kwargs).json()
 
     # server level
@@ -70,8 +80,14 @@ class Server(object):
         """
         return self._getj('db')
 
+    def dbexists(self, dbname):
+        return dbname in [ d['id'] for d in self.dbs() ]
+
     def mkdb(self, name):
         return self._postj('db', name)
+
+    def rmdb(self, name):
+        return self._del('db', name)
 
     def Database(self, dbname='default'):
         """
@@ -96,13 +112,29 @@ class Database(object):
         self.srv = server
         self.dbid = dbname
 
-    def _get(self, *path, **kwargs): return self.srv._request('GET', 'db', self.dbid, *path, **kwargs)
-    def _post(self, *path, **kwargs): return self.srv._request('POST', 'db', self.dbid, *path, **kwargs)
+    def __repr__(self):
+        return '< pyqdb.Database(' + repr(self.srv) + ', ' + self.dbid + ' >'
+
+    def _get(self, *path, **kwargs): return self.srv._get('db', self.dbid, *path, **kwargs)
+    def _post(self, *path, **kwargs): return self.srv._post('db', self.dbid, *path, **kwargs)
+    def _del(self, *path, **kwargs): return self.srv._del('db', self.dbid, *path, **kwargs)
     def _getj(self, *path, **kwargs): return self._get(*path, **kwargs).json()
     def _postj(self, *path, **kwargs): return self._post(*path, **kwargs).json()
 
     def queues(self):
         return self._getj('q')
+
+    def qexists(self, qname):
+        return qname in [ q['id'] for q in self.queues() ]
+
+    def mkqueue(self, qname, **config):
+        return self.Queue(qname).config(**config)
+
+    def rmqueue(self, qname):
+        return self._del('q', qname)
+
+    def rmQueue(self, qobj):
+        return self.rmqueue(qobj.qid)
 
     def Queue(self, q):
         return Queue(self, q)
@@ -119,6 +151,9 @@ class Queue(object):
     def __init__(self, qdb, name):
         self.qdb = qdb
         self.qid = name
+
+    def __repr__(self):
+        return '< pyqdb.Queue(' + repr(self.qdb) + ', ' + self.qid + ' >'
 
     def _get(self, *path, **kwargs): return self.qdb._get('q', self.qid, *path, **kwargs)
     def _post(self, *path, **kwargs): return self.qdb._post('q', self.qid, *path, **kwargs)
