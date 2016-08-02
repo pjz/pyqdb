@@ -27,7 +27,7 @@ setup( author = 'Paul Jimenez'
      , name = 'pyqdb'
      , url = 'http://github.com/pjz/pyqdb'
      , packages = find_packages()
-     , version = '0.2'
+     , version = '0.3'
      , install_requires = [ 'requests' ]
      , extras_require = { 'tests': [ 'pytest', 'pytest-timeout', 'pytest-cov' ] },
       )
